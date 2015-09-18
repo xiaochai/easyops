@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# 判断第一个参数是否在后续的参数中
+# 如果是显示true，否则显示false
+function inarray(){
+	find="$1";shift;
+	while [ $# -gt 0 ]; do
+		if [ "$1" = "$find" ]; then
+			echo "true"
+			return
+		fi
+		shift
+	done
+	echo "false"
+}
+
+userselectResult=""
+
+# 给出一个列表，让用户在列表中选择一个
+# 选择结果将赋值到userselect
+# -p [--prompt] 		: 等待用户输入前的提示
+# -s [--show] 			: 输出列表前的提示
+# -e [--error-output] 	: 用户输入有错时的提示
+function userselect(){
+	options=()
+	prompt="请选择[0]:"
+	error="输入出错，请重新输入!!!"
+	show="请在以下列表中选择"
+	while [ $# -gt 0 ]; do
+		case $1 in
+			-p | --prompt) prompt=$2;shift;shift;;
+			-s | --show) show=$2;shift;shift;;
+			-e | --error-output) error=$2;shift;shift;;
+			-*) return 2;;
+			*) options+=($1); shift;;
+		esac
+	done
+	if [ ${#options[@]} -eq 0 ]; then
+		return 3
+	fi
+
+	echo $show
+	for i in ${!options[@]}; do
+		echo "$i:${options[$i]}";
+	done
+
+	while true; do
+		read -p "$prompt" s
+		[ -z "$s" ] && s=0
+		[[ "$s" =~ ^[0-9]*$ && "$s" -ge 0 && "$s" -lt ${#options[@]} ]] && s=${options[$s]}
+		if [ `inarray "$s" "${options[@]}"` = "true" ]; then
+			break
+		fi
+		echo $error
+	done
+	userselectResult=$s
+}

@@ -1,0 +1,65 @@
+#!/usr/bin/expect
+
+# 一个自动ssh登录的脚本
+# 用法 easyssh ip [root] [istest]
+# ip是目的主机的ip, 是否需要root，是否是测试
+# root不传表示不执行sudo -s
+# istest不传表示不是测试，回到交互模式
+#
+# 关于退出:在命令行输入zzzz即可快速退出
+
+set username "xxx"
+set password "xxxx"
+set timeout 5
+set ip [lindex $argv 0];
+set root [lindex $argv 1];
+set istest [lindex $argv 2];
+if { [string length $ip] == 0 } {
+	send_user "ERROR:EMPTY IP!!\n";
+	exit;
+}
+
+spawn ssh $username@$ip
+#公钥校验和密码校验
+expect {
+	"*yes/no*" { send "yes\n" ; exp_continue;}
+	"*assword*" { send "$password\n";}
+	"*口令*" { send "$password\n";}
+	eof { send_user "ERROR:END OF FILE!!\n"; exit;}
+	timeout { send_user "ERROR:TIME OUT!!\n"; exit;}
+}
+
+#检测是否已经登录成功
+expect {
+	"$username" {}
+	"@" {}
+	"~" {}
+	"denied" { send_user "ERROR:WRONG PASSWORD!!\n";exit;}
+	eof { send_user "ERROR:END OF FILE!!\n"; exit;}
+	timeout { send_user "ERROR:TIME OUT!!\n"; exit;}
+}
+
+# 切换到root用户
+if { [string length $root] != 0 } {
+	send "sudo -s\n";
+	expect {
+		"*assword*" { send "$password\n";}
+		"root@" {;}
+		"*口令*" { send "$password\n";}
+		eof { send_user "ERROR:END OF FILE!!\n"; exit;}
+		timeout { send_user "ERROR:TIME OUT!!\n"; exit;}
+	}
+}
+
+#测试时使用，命令行的第二个参数，直接返回，不进行interact
+if { [string length $istest] != 0 } {
+	send_user "SUCC\n";
+	send "exit\nexit\n";
+	sleep 1
+	exit;
+}
+
+#交由用户控制
+interact {
+	"zzzz" {send "exit\nexit\n"}
+}

@@ -1,0 +1,79 @@
+#!/bin/bash
+# 从一个目录下快速选择需要登录的服务器ip并登录
+#
+# ip列表的目录存放于$HOME/.easylogin下,并以目录层级为选择依据
+#   例如你在$HOME/.easylogin/project1/subproject文件中存入ip列表
+#   那么你使用easylogin project1 subproject来列出对应的ip列表
+# 还提供ip搜索功能，-s参数可以使用正则表达式来搜索出对应的ip列表
+#
+# 依赖shelllib和easyssh，其中easyssh中需要修改用户名和密码
+#
+# -s [--search] 		: 搜索模式，后面跟一个正则表达式
+# -r [--root] 			: 以root用户登录
+
+source shelllib
+
+needroot=""
+search=""
+basedir=$HOME/.easylogin/iplist
+if [ ! -d "$basedir" ]; then
+	echo "No Iplist Found In $basedir"
+	exit 2
+fi
+
+curdir=$basedir
+while [ $# -gt 0 ]; do
+	case $1 in
+		-r | --root) needroot=1; shift;;
+		-s | --search) search=$2;shift;shift;;
+		*) curdir="$curdir/$1";shift;;
+	esac
+done
+
+if [ ! -z "$search" ]; then
+	list=()
+	for i in `find $basedir -type f`; do
+		for j in `grep "$search" "$i"`; do
+			list+=("${i#$basedir}|$j")
+		done
+	done
+	if [ ${#list[@]} -eq 0 ]; then
+		echo "未找到相应项目"
+		exit 3
+	fi
+	userselect -s "搜索 $search 找到以下这些项目:" "${list[@]}"
+	ip=`echo "$userselectResult" | awk -F"|" '{print $2}' `
+	easyssh $ip $needroot
+	exit
+fi
+
+if [ ! -s "$curdir" ]; then
+	echo "未找到项目${curdir#$basedir}"
+	exit 3
+fi
+
+#选择项目，直至选择到ip文件
+while [ ! -f $curdir ]; do
+	names=()
+	for i in `ls $curdir`; do
+		names+=($i)
+	done
+	if [ ${#names[@]} -eq 0 ]; then
+		echo "未找到项目${curdir#$basedir}"
+		exit 3
+	fi
+	userselect -s ${curdir#$basedir}"找到以下这些项目:" "${names[@]}"
+	curdir=$curdir/$userselectResult
+done
+
+ips=()
+for i in `cat $curdir`; do
+	ips+=($i)
+done
+if [ ${#ips[@]} -eq 0 ]; then
+	echo "未找到项目${curdir#$basedir}的ip"
+	exit 3
+fi
+
+userselect -s ${curdir#$basedir}"找到以下这些ip:" "${ips[@]}"
+easyssh $userselectResult $needroot

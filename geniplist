@@ -1,0 +1,38 @@
+#!/usr/bin/php -f
+<?php
+/**
+ * 从http://:8080/api/queryAllMachine?cluster=ipcam获取ip列表
+ * 并存入目录，供easylogin程序使用
+ * 黑夜目录在$HOME/.easylogin下
+ */
+
+$HOME = getenv("HOME");
+if(empty($HOME)){
+	die("NOT FIND HOME DIR\n");
+}
+
+$iplistdir = "$HOME/.easylogin/iplist";
+if (!is_dir($iplistdir)) {
+	mkdir($iplistdir, 0777, true);
+}
+`rm -rf $iplistdir/*`;
+
+iplist();
+
+function iplist(){
+	$iplist = json_decode(file_get_contents("http://xxx.x.x.x:8080/api/queryAllMachine"), true);
+	if(empty($iplist)){
+		die("No iplist found!\n");
+	}
+	global $iplistdir;
+	foreach($iplist as $clustername => $cluster){
+		mkdir($iplistdir."/".$clustername, 0777, true);
+		foreach($cluster as $cname => $component){
+			$ms = array();
+			foreach($component as $machine){
+				$ms[$machine['machine']] = true;
+			}
+			file_put_contents($iplistdir."/".$clustername."/".$cname, implode("\n", array_keys($ms)), FILE_APPEND);
+		}
+	}
+}

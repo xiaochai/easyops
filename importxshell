@@ -1,0 +1,38 @@
+#!/bin/bash
+# 从xshell里导出配置到easylogin
+# 如果对应的文件夹下既有文件又有目录，则文件里的Ip列表会存入_文件中
+if [ -z "$1" ] ;then
+	echo "importxshell xshell/sessions/dir"
+	exit 3
+fi
+xshelldir=$1
+iplistdir=$HOME"/.easylogin/iplist"
+function dealdir(){
+	local currdir=$1
+	local ipfiles=()
+	local havedir=0
+	for i in `ls $currdir`;do
+		if [ -d $currdir/$i ]; then
+			havedir=1
+			dealdir "$currdir/$i"
+		elif [[ "$i" =~ \.xsh$ ]]; then
+			ipfiles+=($i)
+		fi
+	done;
+	if [ ${#ipfiles[@]} -ne 0 ]; then
+		if [ $havedir -eq 1 ]; then
+			local iplistfile=$iplistdir${currdir#$xshelldir}"/_"
+		else
+			local iplistfile=$iplistdir${currdir#$xshelldir}
+		fi
+		echo $iplistfile;
+		mkdir `dirname $iplistfile` -p
+		unlink $iplistfile
+		local iplist=()
+		for j in ${ipfiles[@]}; do
+			local t=`grep 'Host=' "$currdir/$j"| tr -d "\r"`
+			echo "${t#Host=}|${j%.xsh}" >> $iplistfile
+		done
+	fi
+}
+dealdir $xshelldir

@@ -1,19 +1,27 @@
 #!/usr/bin/expect
 
-# 一个自动ssh登录的脚本
-# 用法 easyssh ip [root] [istest]
-# ip是目的主机的ip, 是否需要root，是否是测试
-# root不传表示不执行sudo -s
-# istest不传表示不是测试，回到交互模式
+#一个自动ssh登录的脚本工具，免去每一次都要输入密码的烦恼 
 #
-# 关于退出:在命令行输入zzzz即可快速退出
+#easyssh ip [root] [username] [password]
+#ip：目的主机的ip
+#root：是否以root身份登录，任何非空字符串都会认识需要以root登录
+#username：用户名，如果不传采用脚本中写好的用户名
+#password：密码，如果不传采用脚本中写好的密码
+#
+#关于退出:在命令行输入zzzz即可快速退出
+
 
 set username "xxx"
 set password "xxxx"
 set timeout 5
 set ip [lindex $argv 0];
 set root [lindex $argv 1];
-set istest [lindex $argv 2];
+if { [string length [lindex $argv 2] ] != 0 } {
+	set username [lindex $argv 2]
+}
+if { [string length [lindex $argv 3] ] != 0 } {
+	set password [lindex $argv 3]
+}
 if { [string length $ip] == 0 } {
 	send_user "ERROR:EMPTY IP!!\n";
 	exit;
@@ -49,14 +57,6 @@ if { [string length $root] != 0 } {
 		eof { send_user "ERROR:END OF FILE!!\n"; exit;}
 		timeout { send_user "ERROR:TIME OUT!!\n"; exit;}
 	}
-}
-
-#测试时使用，命令行的第二个参数，直接返回，不进行interact
-if { [string length $istest] != 0 } {
-	send_user "SUCC\n";
-	send "exit\nexit\n";
-	sleep 1
-	exit;
 }
 
 #交由用户控制

@@ -3,7 +3,7 @@
 # 判断第一个参数是否在后续的参数中
 # 如果是显示true，否则显示false
 function inarray(){
-	find="$1";shift;
+	local find="$1";shift;
 	while [ $# -gt 0 ]; do
 		if [ "$1" = "$find" ]; then
 			echo "true"
@@ -22,7 +22,7 @@ userselectResult=""
 # -s [--show] 			: 输出列表前的提示
 # -e [--error-output] 	: 用户输入有错时的提示
 function userselect(){
-	options=()
+	local options=()
 	prompt="请选择[0]:"
 	error="输入出错，请重新输入!!!"
 	show="请在以下列表中选择"

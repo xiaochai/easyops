@@ -8,8 +8,11 @@
 #
 # 依赖shelllib和easyssh，其中easyssh中需要修改用户名和密码
 #
-# -s [--search] 		: 搜索模式，后面跟一个正则表达式
-# -r [--root] 			: 以root用户登录
+#easylogin [-r] [-s regex] [p1 [p2 ...]]
+#
+#-r         以root用户登录服务器
+#-s regex   搜索服务器列表中匹配的行(grep)
+#p1,p2...   目录的层级，或者是文件名，这里的顺序为目录的层级，从配置目录的根目录开始
 
 source shelllib
 
@@ -31,10 +34,18 @@ while [ $# -gt 0 ]; do
 done
 
 if [ ! -z "$search" ]; then
+	if [ -f $curdir ]; then
+		dirlist=($curdir)
+	elif [ -d $curdir ]; then
+		dirlist=(`find $curdir -type f`)
+	else
+		echo "未找到相应项目"
+		exit 3
+	fi
 	list=()
-	for i in `find $basedir -type f`; do
+	for i in ${dirlist[@]}; do
 		for j in `grep "$search" "$i"`; do
-			list+=("${i#$basedir}|$j")
+			list+=("$j|${i#$basedir}")
 		done
 	done
 	if [ ${#list[@]} -eq 0 ]; then
@@ -42,7 +53,7 @@ if [ ! -z "$search" ]; then
 		exit 3
 	fi
 	userselect -s "搜索 $search 找到以下这些项目:" "${list[@]}"
-	ip=`echo "$userselectResult" | awk -F"|" '{print $2}' `
+	ip=`echo "$userselectResult" | awk -F"|" '{print $1}' `
 	easyssh $ip $needroot
 	exit
 fi
@@ -76,4 +87,5 @@ if [ ${#ips[@]} -eq 0 ]; then
 fi
 
 userselect -s ${curdir#$basedir}"找到以下这些ip:" "${ips[@]}"
-easyssh $userselectResult $needroot
+ip=`echo "$userselectResult" | awk -F"|" '{print $1}' `
+easyssh $ip $needroot

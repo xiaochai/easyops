@@ -20,7 +20,7 @@ if (!is_dir($iplistdir)) {
 iplist();
 
 function iplist(){
-	$iplist = json_decode(file_get_contents("http://xxx.x.x.x:8080/api/queryAllMachine"), true);
+	$iplist = json_decode(file_get_contents("http://xxxx:8080/api/queryAllMachine"), true);
 	if(empty($iplist)){
 		die("No iplist found!\n");
 	}
@@ -30,7 +30,7 @@ function iplist(){
 		foreach($cluster as $cname => $component){
 			$ms = array();
 			foreach($component as $machine){
-				$ms[$machine['machine']] = true;
+				$ms[$machine['machine'] . "|$clustername/$cname"] = true;
 			}
 			file_put_contents($iplistdir."/".$clustername."/".$cname, implode("\n", array_keys($ms)), FILE_APPEND);
 		}

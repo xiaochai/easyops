@@ -86,3 +86,15 @@ easylogin是一个从指定配置目录读取服务器列表，让用户选择�
 
 	easylogin -s "nginx服务器" b
 
+----
+
+##importxshell
+
+importxshell是将xshell的配置文件导入到easylogin的配置文件中
+
+###使用
+	
+	importxshell *xshell/session/dir*
+
+**如果对应的文件夹下既有文件又有目录，则文件里的Ip列表会存入_文件中**
+

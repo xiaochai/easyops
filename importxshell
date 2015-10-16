@@ -2,15 +2,21 @@
 # 从xshell里导出配置到easylogin
 # 如果对应的文件夹下既有文件又有目录，则文件里的Ip列表会存入_文件中
 if [ -z "$1" ] ;then
-	echo "importxshell xshell/sessions/dir"
+	echo "Usage: importxshell xshell/sessions/dir"
 	exit 3
 fi
 xshelldir=$1
 iplistdir=$HOME"/.easylogin/iplist"
+
+# 函数分析目标目录的文件和目录，
+# 如果是目录递归调用此方法，如果是文件
+# 当只有文件时，直接创建这个目录名的文件，否则创建目录下的_文件
 function dealdir(){
 	local currdir=$1
 	local ipfiles=()
 	local havedir=0
+	OLDIFS=$IFS
+	IFS=$(echo -en "\n\b")
 	for i in `ls $currdir`;do
 		if [ -d $currdir/$i ]; then
 			havedir=1
@@ -25,14 +31,17 @@ function dealdir(){
 		else
 			local iplistfile=$iplistdir${currdir#$xshelldir}
 		fi
-		echo $iplistfile;
 		mkdir `dirname $iplistfile` -p
-		unlink $iplistfile
+		if [ -e $iplistfile ]; then 
+			unlink $iplistfile
+		fi
 		local iplist=()
 		for j in ${ipfiles[@]}; do
 			local t=`grep 'Host=' "$currdir/$j"| tr -d "\r"`
+			j=${j//\ /_}
 			echo "${t#Host=}|${j%.xsh}" >> $iplistfile
 		done
 	fi
+	IFS=$OLDIFS
 }
 dealdir $xshelldir

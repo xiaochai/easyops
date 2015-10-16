@@ -94,7 +94,9 @@ importxshell是将xshell的配置文件导入到easylogin的配置文件中
 
 ###使用
 	
-	importxshell *xshell/session/dir*
+	importxshell xshell/session/dir
+
+其中 xshell/session/dir为xshell的配置文件目录
 
 **如果对应的文件夹下既有文件又有目录，则文件里的Ip列表会存入_文件中**
 

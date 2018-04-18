@@ -1,10 +1,10 @@
-#easyops
+# easyops
 
 ----
 
 运维相关的工具
 
-##easyssh
+## easyssh
 
 一个自动ssh登录的脚本工具，免去每一次都要输入密码的烦恼 
 
@@ -21,13 +21,13 @@
 
 ----
 
-##easylogin
+## easylogin
 
 easylogin是一个从指定配置目录读取服务器列表，让用户选择登录ip的工具
 
 依赖easyssh工具
 
-###配置文件
+### 配置文件
 
 配置文件位于$HOME/.easylogin/iplist处（由basedir决定）
 
@@ -35,7 +35,7 @@ easylogin是一个从指定配置目录读取服务器列表，让用户选择�
 
 一行中以|分隔开两个字段，前一个字段为ip或者域名，第二个字段为注释
 
-###使用
+### 使用
 
 	easylogin [-r] [-s regex] [p1 [p2 ...]]
 	
@@ -43,7 +43,7 @@ easylogin是一个从指定配置目录读取服务器列表，让用户选择�
 	-s regex   搜索服务器列表中匹配的行(grep)
 	p1,p2...   目录的层级，或者是文件名，这里的顺序为目录的层级，从配置目录的根目录开始
 	
-###例子
+### 例子
 
 目前手头上有2个项目，分别是a项目和b项目，a项目有两个集群，分别是ac1和ac2，b项目下有两个子项目sub1和sub2，sub1有三个集群sub1c1、sub1c2、sub1c3，sub2有两个集群sub2c1、sub2c2。
 
@@ -88,11 +88,11 @@ easylogin是一个从指定配置目录读取服务器列表，让用户选择�
 
 ----
 
-##importxshell
+## importxshell
 
 importxshell是将xshell的配置文件导入到easylogin的配置文件中
 
-###使用
+### 使用
 	
 	importxshell xshell/session/dir
 
@@ -100,3 +100,20 @@ importxshell是将xshell的配置文件导入到easylogin的配置文件中
 
 **如果对应的文件夹下既有文件又有目录，则文件里的Ip列表会存入_文件中**
 
+----
+
+## svnrevert
+
+A convenient script for svn revert which supports regular expression
+
+Usage: svnrevert [option] [FILE]
+
+	FILE	the regular expression to match the files
+	-M	revert the files which are modified
+	-u	revert the files which are unversioned
+	-h	show this text
+	-a	revert all files
+
+To revert the files which are suffixed by .php and are modifed:
+
+	svnrevert -M .*\.php

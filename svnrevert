@@ -1,0 +1,74 @@
+#!/bin/bash
+function help(){
+	echo "Usage: svnrevert [option] [FILE]" 
+	echo "A convenient script for svn revert which supports regular expression"
+	echo ""
+	echo "	FILE	the regular expression to match the files"
+	echo "	-M	revert the files which are modified"
+	echo "	-u	revert the files which are unversioned"
+	echo "	-h	show this text"
+	echo "	-a	revert all files"
+	echo ""
+	echo "To revert the files which are suffixed by .php and are modifed:"
+	echo "	svnrevert -M .*\.php"
+}
+hash svn 2>/dev/null || {
+	echo "svn: command not found!";
+	exit 1;
+}
+
+if [ $# -eq 0 ]; then
+	help;
+	exit;
+fi;
+
+pattern=()
+justlist=0
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-u) pattern[${#pattern[*]}]="^\?"
+			;;
+		-M)
+			pattern[${#pattern[*]}]="^M\b"
+			;;
+		-h)
+			help
+			exit;
+			;;
+		-a)
+			pattern=()
+			;;
+		-j | --just-list)
+			justlist=1
+			;;
+		*)
+			pattern[${#pattern[*]}]="$1"
+			;;
+	esac
+	shift
+done
+
+result=`svn st`
+
+for i in ${pattern[*]}; do
+	result=`echo "$result" | egrep "$i" `;
+done;
+
+if [ $justlist -eq 1 ]; then
+	echo "$result"
+	exit;
+fi
+
+OLD_IFS="$IFS"
+IFS="
+"
+
+for i in $result; do
+	cmd=`echo $i | awk '{if ($1 == "?") print "rm -r "$NF; else print "svn revert "$NF}'`
+	echo $cmd
+	eval $cmd
+done;
+
+
+IFS="$OLD_IFS"
+
